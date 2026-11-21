@@ -5,7 +5,14 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-copyFileSync(new URL('./entry.png', import.meta.url), join(process.env.MAKEFUN_OUTPUT_DIR ?? '/output', 'entry.png'));
+const source = new URL('./entry.png', import.meta.url);
+const sourceSize = statSync(source).size;
+if (sourceSize === 0) {
+  throw new Error('entry.png is empty, refusing to copy a blank image');
+}
+const destination = join(process.env.MAKEFUN_OUTPUT_DIR ?? '/output', 'entry.png');
+copyFileSync(source, destination);
+console.log(`Wrote ${destination} (${sourceSize} bytes)`);
